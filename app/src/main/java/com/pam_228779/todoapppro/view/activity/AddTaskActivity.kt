@@ -19,15 +19,18 @@ import com.pam_228779.todoapppro.databinding.ActivityAddTaskBinding
 import com.pam_228779.todoapppro.model.Task
 import com.pam_228779.todoapppro.viewModel.TaskViewModel
 import com.pam_228779.todoapppro.utils.TaskReminderWorker
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class AddTaskActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddTaskBinding
     private val taskViewModel: TaskViewModel by viewModels()
     private var dueDate: Calendar = Calendar.getInstance()
-
+    private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +55,19 @@ class AddTaskActivity : AppCompatActivity() {
                 ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, categories)
             binding.categoryAutocomplete.setAdapter(categoriesAdapter)
         }
+
+        binding.categoryAutocomplete.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                binding.categoryAutocomplete.showDropDown()
+            }
+        }
+
+        binding.categoryAutocomplete.setOnClickListener {
+            binding.categoryAutocomplete.showDropDown()
+        }
+
+        updateDateInView()
+        updateTimeInView()
     }
 
     private fun showDatePickerDialog() {
@@ -64,6 +80,7 @@ class AddTaskActivity : AppCompatActivity() {
             dueDate.set(Calendar.YEAR, selectedYear)
             dueDate.set(Calendar.MONTH, selectedMonth)
             dueDate.set(Calendar.DAY_OF_MONTH, selectedDay)
+            updateDateInView()
         }, year, month, day).show()
     }
 
@@ -75,6 +92,7 @@ class AddTaskActivity : AppCompatActivity() {
         TimePickerDialog(this, { _, selectedHour, selectedMinute ->
             dueDate.set(Calendar.HOUR_OF_DAY, selectedHour)
             dueDate.set(Calendar.MINUTE, selectedMinute)
+            updateTimeInView()
         }, hour, minute, true).show()
     }
 
@@ -100,34 +118,12 @@ class AddTaskActivity : AppCompatActivity() {
         }
     }
 
-    private fun showDateTimePickerDialog(onDateSet: (Date) -> Unit) {
-        val calendar = Calendar.getInstance()
-        val datePickerDialog = DatePickerDialog(
-            this,
-            { _, year, month, dayOfMonth ->
-                calendar.set(year, month, dayOfMonth)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
-        val timePickerDialog = TimePickerDialog(
-            this,
-            { _, hour, minute ->
-                calendar.set(
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH),
-                    hour,
-                    minute
-                    )
-                onDateSet(calendar.time)
-            },
-            calendar.get(Calendar.HOUR_OF_DAY),
-            calendar.get(Calendar.MINUTE),
-            true
-        )
-        datePickerDialog.show()
-        timePickerDialog.show()
+    private fun updateDateInView() {
+        binding.selectedDateText.text = dateFormat.format(dueDate.time)
     }
+
+    private fun updateTimeInView() {
+        binding.selectedTimeText.text = timeFormat.format(dueDate.time)
+    }
+
 }

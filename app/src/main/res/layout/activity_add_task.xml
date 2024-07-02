@@ -25,28 +25,52 @@
         android:minLines="3" />
 
     <TextView
-        android:id="@+id/due_date_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Due Date" />
 
-    <Button
-        android:id="@+id/date_button"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select Date" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/date_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Date" />
+
+        <TextView
+            android:id="@+id/selected_date_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="No date selected" />
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/due_time_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Due Time" />
 
-    <Button
-        android:id="@+id/time_button"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select Time" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/time_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Time" />
+
+        <TextView
+            android:id="@+id/selected_time_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="No time selected" />
+    </LinearLayout>
 
     <Switch
         android:id="@+id/notification_switch"
@@ -58,6 +82,7 @@
         android:id="@+id/category_autocomplete"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:completionThreshold="0"
         android:hint="Category" />
 
     <Button
