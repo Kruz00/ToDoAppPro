@@ -6,17 +6,27 @@
     android:padding="16dp">
 
     <TextView
-        android:id="@+id/title"
+        android:id="@+id/task_item_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Task Title"
+        android:textSize="22sp"
         android:textAppearance="?attr/textAppearanceListItem" />
 
     <TextView
-        android:id="@+id/description"
+        android:id="@+id/task_item_category"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Task Description"
+        android:text="Category"
+        android:textSize="16sp"
+        android:textAppearance="?attr/textAppearanceListItem" />
+
+    <TextView
+        android:id="@+id/task_item_due_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Task due time"
+        android:textSize="14sp"
         android:textAppearance="?attr/textAppearanceListItem" />
 
     <!-- Add other views for displaying task details -->

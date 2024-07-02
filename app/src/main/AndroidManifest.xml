@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools" >
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -14,8 +16,15 @@
         android:theme="@style/Theme.ToDoAppPro"
         tools:targetApi="31" >
         <activity
-            android:name=".view.MainActivity"
-            android:exported="false" />
+            android:name=".view.activity.MainActivity"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".view.activity.TaskDetailActivity" />
+        <activity android:name=".view.activity.AddTaskActivity" />
     </application>
 
 </manifest>
