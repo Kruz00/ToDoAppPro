@@ -4,12 +4,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
 import android.os.Bundle
+import android.widget.SearchView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.pam_228779.todoapppro.R
 import com.pam_228779.todoapppro.databinding.ActivityMainBinding
 import com.pam_228779.todoapppro.view.adapter.TaskListAdapter
 import com.pam_228779.todoapppro.viewModel.TaskViewModel
@@ -18,21 +16,22 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val taskViewModel: TaskViewModel by viewModels()
+    private lateinit var taskListAdapter: TaskListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val taskAdapter = TaskListAdapter()
+        taskListAdapter = TaskListAdapter()
         binding.tasksRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
-            adapter = taskAdapter
+            adapter = taskListAdapter
         }
 
         taskViewModel.allTasks.observe(this) { tasks ->
             tasks?.let {
-                taskAdapter.submitList(it)
+                taskListAdapter.submitList(it)
             }
         }
 
@@ -42,6 +41,26 @@ class MainActivity : AppCompatActivity() {
         }
 
         createNotificationChannel()
+
+        val searchView: SearchView = binding.searchView // zrobic na appcompat
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterTasks(newText ?: "")
+                return false
+            }
+        })
+    }
+
+    private fun filterTasks(query: String) {
+        val filteredTasks = taskViewModel.allTasks.value?.filter {
+            it.title.contains(query, ignoreCase = true)
+        }
+        taskListAdapter.submitList(filteredTasks)
     }
 
     private fun createNotificationChannel() {
