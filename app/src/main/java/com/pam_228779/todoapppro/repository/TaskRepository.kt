@@ -10,6 +10,10 @@ class TaskRepository(private val taskDao: TaskDao) {
         return taskDao.getTaskById(id)
     }
 
+    fun getAllCategories(): LiveData<List<String>> {
+        return taskDao.getAllCategories()
+    }
+
     suspend fun insert(task: Task) {
         taskDao.insert(task)
     }

@@ -1,6 +1,7 @@
 package com.pam_228779.todoapppro.viewModel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
@@ -25,14 +26,24 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         return repository.getTaskById(id)
     }
 
+    fun getAllCategories(): LiveData<List<String>> {
+        return repository.getAllCategories()
+    }
+
     fun insert(task: Task) = viewModelScope.launch {
         repository.insert(task)
-        scheduleTaskReminder(task)
+        if (task.isNotificationEnabled) {
+            scheduleTaskReminder(task)
+        }
     }
 
     fun update(task: Task) = viewModelScope.launch {
         repository.update(task)
-        scheduleTaskReminder(task)
+        if (task.isNotificationEnabled) {
+            scheduleTaskReminder(task)
+        } else {
+            cancelTaskReminder(task)
+        }
     }
 
     fun delete(task: Task) = viewModelScope.launch {
@@ -42,11 +53,12 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun scheduleTaskReminder(task: Task) {
         val reminderOffsetMinutes = 0L
-        scheduleTaskReminder(getApplication(), task, reminderOffsetMinutes)
-
+        Log.i("TaskViewModel", "Scheduling notification for $task")
+//        scheduleTaskReminder(getApplication(), task, reminderOffsetMinutes)
     }
 
     private fun cancelTaskReminder(task: Task) {
-        cancelTaskReminder(getApplication(), task)
+        Log.i("TaskViewModel", "Cancel notification for $task")
+//        cancelTaskReminder(getApplication(), task)
     }
 }

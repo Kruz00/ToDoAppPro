@@ -42,23 +42,22 @@ class MainActivity : AppCompatActivity() {
 
         createNotificationChannel()
 
-        val searchView: SearchView = binding.searchView // zrobic na appcompat
-
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
+                filterTasks(query)
+                return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                filterTasks(newText ?: "")
-                return false
+                filterTasks(newText)
+                return true
             }
         })
     }
 
-    private fun filterTasks(query: String) {
+    private fun filterTasks(query: String?) {
         val filteredTasks = taskViewModel.allTasks.value?.filter {
-            it.title.contains(query, ignoreCase = true)
+            it.title.contains(query ?: "", ignoreCase = true)
         }
         taskListAdapter.submitList(filteredTasks)
     }

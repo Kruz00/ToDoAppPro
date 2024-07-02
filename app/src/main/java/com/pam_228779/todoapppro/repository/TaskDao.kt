@@ -12,6 +12,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :id")
     fun getTaskById(id: Int): LiveData<Task>
 
+    @Query("SELECT DISTINCT category FROM tasks")
+    fun getAllCategories(): LiveData<List<String>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(task: Task)
 
