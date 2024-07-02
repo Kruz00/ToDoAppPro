@@ -14,5 +14,6 @@ data class Task(
     val isCompleted: Boolean = false,
     val isNotificationEnabled: Boolean = false,
     val category: String,
-    val hasAttachment: Boolean = false
+    val hasAttachment: Boolean = false,
+    val attachmentUri: String? = null
 )

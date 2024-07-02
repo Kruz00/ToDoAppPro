@@ -85,6 +85,26 @@
         android:completionThreshold="0"
         android:hint="Category" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+
+        <Button
+            android:id="@+id/add_attachment_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Attachment" />
+
+        <TextView
+            android:id="@+id/attachment_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="No attachment" />
+    </LinearLayout>
+
     <Button
         android:id="@+id/save_button"
         android:layout_width="wrap_content"

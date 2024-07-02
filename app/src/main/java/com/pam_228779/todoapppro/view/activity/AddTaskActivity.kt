@@ -1,29 +1,28 @@
 package com.pam_228779.todoapppro.view.activity
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import com.pam_228779.todoapppro.R
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.pam_228779.todoapppro.databinding.ActivityAddTaskBinding
 import com.pam_228779.todoapppro.model.Task
 import com.pam_228779.todoapppro.viewModel.TaskViewModel
-import com.pam_228779.todoapppro.utils.TaskReminderWorker
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 class AddTaskActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddTaskBinding
@@ -31,10 +30,10 @@ class AddTaskActivity : AppCompatActivity() {
     private var dueDate: Calendar = Calendar.getInstance()
     private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    private var attachmentUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityAddTaskBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -44,6 +43,10 @@ class AddTaskActivity : AppCompatActivity() {
 
         binding.timeButton.setOnClickListener {
             showTimePickerDialog()
+        }
+
+        binding.addAttachmentButton.setOnClickListener {
+            selectAttachment()
         }
 
         binding.saveButton.setOnClickListener {
@@ -96,6 +99,72 @@ class AddTaskActivity : AppCompatActivity() {
         }, hour, minute, true).show()
     }
 
+    private fun selectAttachment() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+        selectAttachmentLauncher.launch(intent)
+    }
+
+    private val selectAttachmentLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data?.data?.also { uri ->
+                attachmentUri = uri
+                val fileName = getFileName(uri)
+                binding.attachmentTextView.text = fileName
+            }
+        }
+    }
+
+    private fun getFileName(uri: Uri): String {
+        var name = "unknown"
+        val cursor = contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    name = it.getString(nameIndex)
+                }
+            }
+        }
+        return name
+    }
+
+    private fun saveAttachmentToExternalStorage(uri: Uri): String? {
+        val fileName = getFileName(uri)
+        val externalFilesDir = getExternalFilesDir(null)
+        val destFile = File(externalFilesDir, fileName)
+
+        return try {
+            contentResolver.openInputStream(uri).use { inputStream ->
+                FileOutputStream(destFile).use { outputStream ->
+                    inputStream?.copyTo(outputStream)
+                }
+            }
+            destFile.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun checkAndRequestPermissions(): Boolean {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ), PERMISSION_REQUEST_CODE)
+            return false
+        }
+        return true
+    }
+
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 100
+    }
+
     private fun saveTask() {
         val title = binding.titleEditText.text.toString()
         val description = binding.descriptionEditText.text.toString()
@@ -103,6 +172,13 @@ class AddTaskActivity : AppCompatActivity() {
         val category = binding.categoryAutocomplete.text.toString()
 
         if (title.isNotEmpty() && category.isNotEmpty()) {
+            val attachmentPath = attachmentUri?.let { uri ->
+                if (checkAndRequestPermissions()) {
+                    saveAttachmentToExternalStorage(uri)
+                } else {
+                    null
+                }
+            }
             val task = Task(
                 title = title,
                 description = description,
@@ -111,7 +187,8 @@ class AddTaskActivity : AppCompatActivity() {
                 isCompleted = false,
                 isNotificationEnabled = isNotificationEnabled,
                 category = category,
-                hasAttachment = false
+                hasAttachment = attachmentPath != null,
+                attachmentUri = attachmentPath
             )
             taskViewModel.insert(task)
             finish()
