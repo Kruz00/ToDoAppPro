@@ -34,7 +34,7 @@ class TaskDetailActivity : AppCompatActivity() {
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     private val attachments: MutableList<Pair<String, String>> = mutableListOf() // file name, file path
     private lateinit var attachmentAdapter: AttachmentAdapter
-    private var taskUniqueId: String = UUID.randomUUID().toString()
+    private var taskUniqueDir: String = UUID.randomUUID().toString()
     private var task: Task? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,6 +46,7 @@ class TaskDetailActivity : AppCompatActivity() {
         if (taskId != -1) {
             taskViewModel.getTaskById(taskId).observe(this) { task ->
                 this.task = task
+                this.taskUniqueDir = task.taskUniqueDir
                 bindTaskDetails(task)
             }
         }
@@ -172,7 +173,7 @@ class TaskDetailActivity : AppCompatActivity() {
     }
 
     private fun saveAttachmentToExternalStorage(uri: Uri, fileName: String): String? {
-        val taskDir = File(getExternalFilesDir(null), taskUniqueId)
+        val taskDir = File(getExternalFilesDir(null), taskUniqueDir)
         if (!taskDir.exists()) {
             taskDir.mkdirs()
         }
