@@ -32,10 +32,11 @@ class TaskDetailActivity : AppCompatActivity() {
     private var dueDate: Calendar = Calendar.getInstance()
     private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    private val attachments: MutableList<Pair<String, String>> = mutableListOf() // file name, file path
+    private val attachments: MutableList<File> = mutableListOf()
     private lateinit var attachmentAdapter: AttachmentAdapter
     private var taskUniqueDir: String = UUID.randomUUID().toString()
     private var task: Task? = null
+    private var isBound: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,9 +46,12 @@ class TaskDetailActivity : AppCompatActivity() {
         val taskId = intent.getIntExtra("TASK_ID", -1)
         if (taskId != -1) {
             taskViewModel.getTaskById(taskId).observe(this) { task ->
-                this.task = task
-                this.taskUniqueDir = task.taskUniqueDir
-                bindTaskDetails(task)
+                if (!isBound) {
+                    this.task = task
+                    this.taskUniqueDir = task.taskUniqueDir
+                    bindTaskDetails(task)
+                    isBound = true
+                }
             }
         }
 
@@ -97,10 +101,7 @@ class TaskDetailActivity : AppCompatActivity() {
         binding.categoryAutocomplete.setText(task.category, false)
         binding.completedSwitch.isChecked = task.isCompleted
         binding.notificationSwitch.isChecked = task.isNotificationEnabled
-
-        task.attachmentUris.forEach {
-            attachments.add(Pair(it.name, it.absolutePath))
-        }
+        attachments.addAll(task.attachmentFiles)
         attachmentAdapter.notifyDataSetChanged()
     }
 
@@ -145,9 +146,9 @@ class TaskDetailActivity : AppCompatActivity() {
             result.data?.data?.also { uri ->
                 val fileName = getFileName(uri)
                 if (!isAttachmentDuplicate(fileName)) {
-                    val savedPath = saveAttachmentToExternalStorage(uri, fileName)
-                    savedPath?.let {
-                        attachments.add(Pair(fileName, it))
+                    val savedFile = saveAttachmentToExternalStorage(uri, fileName)
+                    savedFile?.let {
+                        attachments.add(savedFile)
                         attachmentAdapter.notifyDataSetChanged()
                     }
                 } else {
@@ -171,19 +172,19 @@ class TaskDetailActivity : AppCompatActivity() {
         return name
     }
 
-    private fun saveAttachmentToExternalStorage(uri: Uri, fileName: String): String? {
+    private fun saveAttachmentToExternalStorage(uri: Uri, fileName: String): File? {
         val taskDir = File(getExternalFilesDir(null), taskUniqueDir)
         if (!taskDir.exists()) {
             taskDir.mkdirs()
         }
-        val file = File(taskDir, fileName)
+        val destFile = File(taskDir, fileName)
         return try {
             contentResolver.openInputStream(uri)?.use { input ->
-                file.outputStream().use { output ->
+                destFile.outputStream().use { output ->
                     input.copyTo(output)
                 }
             }
-            file.absolutePath
+            destFile
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -191,21 +192,20 @@ class TaskDetailActivity : AppCompatActivity() {
     }
 
     private fun isAttachmentDuplicate(fileName: String): Boolean {
-        return attachments.any { it.first == fileName }
+        return attachments.any { it.name == fileName }
     }
 
     private fun setupAttachmentRecyclerView() {
         attachmentAdapter = AttachmentAdapter(attachments,
-            onAttachmentClick = { attachmentPath -> openAttachment(attachmentPath) },
-            onRemoveClick = { attachmentPath -> removeAttachment(attachmentPath) }
+            onAttachmentClick = { attachment -> openAttachment(attachment) },
+            onRemoveClick = { attachment -> removeAttachment(attachment) }
         )
         binding.attachmentsRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.attachmentsRecyclerView.adapter = attachmentAdapter
     }
 
-    private fun openAttachment(attachmentPath: String) {
-        val file = File(attachmentPath)
-        val fileUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", file)
+    private fun openAttachment(attachment: File) {
+        val fileUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", attachment)
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(fileUri, contentResolver.getType(fileUri))
             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -213,16 +213,15 @@ class TaskDetailActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    private fun removeAttachment(attachmentPath: String) {
-        attachments.remove(attachments.find { it.second == attachmentPath })
-        deleteAttachmentFromExternalStorage(attachmentPath)
+    private fun removeAttachment(attachment: File) {
+        attachments.remove(attachments.find { it == attachment })
+        deleteAttachmentFromExternalStorage(attachment)
         attachmentAdapter.notifyDataSetChanged()
     }
 
-    private fun deleteAttachmentFromExternalStorage(attachmentPath: String) {
-        val file = File(attachmentPath)
-        if (file.exists()) {
-            file.delete()
+    private fun deleteAttachmentFromExternalStorage(attachment: File) {
+        if (attachment.exists()) {
+            attachment.delete()
         }
     }
 
@@ -251,7 +250,7 @@ class TaskDetailActivity : AppCompatActivity() {
                     isNotificationEnabled = isNotificationEnabled,
                     category = category,
                     hasAttachment = attachments.isNotEmpty(),
-                    attachmentUris = attachments.map { File(it.second) },
+                    attachmentFiles = attachments,
                 )
                 if (updatedTask != task) {
                     Log.i(TAG, "Task '${task?.title}' updated")

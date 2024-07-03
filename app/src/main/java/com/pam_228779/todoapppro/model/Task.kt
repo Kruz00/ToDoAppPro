@@ -16,6 +16,6 @@ data class Task(
     val isNotificationEnabled: Boolean = false,
     val category: String,
     val hasAttachment: Boolean = false,
-    val attachmentUris: List<File> = emptyList(),
+    val attachmentFiles: List<File> = emptyList(),
     val taskUniqueDir: String
 )

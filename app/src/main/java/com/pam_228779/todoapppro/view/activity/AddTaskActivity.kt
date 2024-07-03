@@ -29,7 +29,7 @@ class AddTaskActivity : AppCompatActivity() {
     private var dueDate: Calendar = Calendar.getInstance()
     private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    private val attachments: MutableList<Pair<String, String>> = mutableListOf() // file name, file path
+    private val attachments: MutableList<File> = mutableListOf()
     private lateinit var attachmentAdapter: AttachmentAdapter
     private var taskUniqueDir: String = UUID.randomUUID().toString()
 
@@ -116,9 +116,9 @@ class AddTaskActivity : AppCompatActivity() {
             result.data?.data?.also { uri ->
                 val fileName = getFileName(uri)
                 if (!isAttachmentDuplicate(fileName)) {
-                    val savedPath = saveAttachmentToExternalStorage(uri, fileName)
-                    savedPath?.let {
-                        attachments.add(Pair(fileName, it))
+                    val savedFile = saveAttachmentToExternalStorage(uri, fileName)
+                    savedFile?.let {
+                        attachments.add(savedFile)
                         attachmentAdapter.notifyDataSetChanged()
                     }
                 } else {
@@ -142,7 +142,7 @@ class AddTaskActivity : AppCompatActivity() {
         return name
     }
 
-    private fun saveAttachmentToExternalStorage(uri: Uri, fileName: String): String? {
+    private fun saveAttachmentToExternalStorage(uri: Uri, fileName: String): File? {
         val taskDir = File(getExternalFilesDir(null), taskUniqueDir)
         if (!taskDir.exists()) {
             taskDir.mkdirs()
@@ -154,7 +154,7 @@ class AddTaskActivity : AppCompatActivity() {
                     inputStream?.copyTo(outputStream)
                 }
             }
-            destFile.absolutePath
+            destFile
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -162,23 +162,22 @@ class AddTaskActivity : AppCompatActivity() {
     }
 
     private fun isAttachmentDuplicate(fileName: String): Boolean {
-        return attachments.any { it.first == fileName }
+        return attachments.any { it.name == fileName }
     }
 
     private fun setupAttachmentRecyclerView() {
-        attachmentAdapter = AttachmentAdapter(attachments, {}) { attachmentPath ->
-            attachments.remove(attachments.find { it.second == attachmentPath })
-            deleteAttachmentFromExternalStorage(attachmentPath)
+        attachmentAdapter = AttachmentAdapter(attachments, {}) { attachment ->
+            attachments.remove(attachments.find { it == attachment })
+            deleteAttachmentFromExternalStorage(attachment)
             attachmentAdapter.notifyDataSetChanged()
         }
         binding.attachmentsRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.attachmentsRecyclerView.adapter = attachmentAdapter
     }
 
-    private fun deleteAttachmentFromExternalStorage(attachmentPath: String) {
-        val file = File(attachmentPath)
-        if (file.exists()) {
-            file.delete()
+    private fun deleteAttachmentFromExternalStorage(attachment: File) {
+        if (attachment.exists()) {
+            attachment.delete()
         }
     }
 
@@ -206,7 +205,7 @@ class AddTaskActivity : AppCompatActivity() {
                 isNotificationEnabled = isNotificationEnabled,
                 category = category,
                 hasAttachment = attachments.isNotEmpty(),
-                attachmentUris = attachments.map { File(it.second) },
+                attachmentFiles = attachments,
                 taskUniqueDir = taskUniqueDir
             )
             taskViewModel.insert(task)

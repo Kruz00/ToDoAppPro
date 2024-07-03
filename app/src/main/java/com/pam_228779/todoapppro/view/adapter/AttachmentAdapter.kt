@@ -4,22 +4,23 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.pam_228779.todoapppro.databinding.ItemAttachmentBinding
+import java.io.File
 
 class AttachmentAdapter(
-    private val attachments: List<Pair<String, String>>, // filename, uri
-    private val onAttachmentClick: (String) -> Unit,
-    private val onRemoveClick: (String) -> Unit
+    private val attachments: List<File>,
+    private val onAttachmentClick: (File) -> Unit,
+    private val onRemoveClick: (File) -> Unit
 ) : RecyclerView.Adapter<AttachmentAdapter.AttachmentViewHolder>() {
 
     inner class AttachmentViewHolder(private val binding: ItemAttachmentBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(attachment: String, filePath: String) {
-            binding.attachmentTextView.text = attachment
+        fun bind(attachment: File) {
+            binding.attachmentTextView.text = attachment.name
             binding.attachmentTextView.setOnClickListener {
-                onAttachmentClick(filePath)
+                onAttachmentClick(attachment)
             }
             binding.removeAttachmentButton.setOnClickListener {
-                onRemoveClick(filePath)
+                onRemoveClick(attachment)
             }
         }
     }
@@ -31,8 +32,8 @@ class AttachmentAdapter(
     }
 
     override fun onBindViewHolder(holder: AttachmentViewHolder, position: Int) {
-        val (attachment, filePath) = attachments[position]
-        holder.bind(attachment, filePath)
+        val attachment = attachments[position]
+        holder.bind(attachment)
     }
 
     override fun getItemCount(): Int = attachments.size
