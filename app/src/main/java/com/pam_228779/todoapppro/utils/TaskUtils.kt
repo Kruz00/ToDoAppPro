@@ -40,10 +40,11 @@ fun scheduleTaskReminder(context: Context, task: Task, reminderOffsetMinutes: Lo
 }
 
 fun cancelTaskReminder(context: Context, task: Task) {
-    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
     val intent = Intent(context, TaskReminderReceiver::class.java)
-    val pendingIntent = PendingIntent.getBroadcast(context, task.id, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-    alarmManager.cancel(pendingIntent)
+    val pendingIntent = PendingIntent.getBroadcast(context, task.id, intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_NO_CREATE)
+    if (pendingIntent != null) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.cancel(pendingIntent)
+    }
 }

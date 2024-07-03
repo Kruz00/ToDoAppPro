@@ -49,7 +49,7 @@ class TaskReminderReceiver : BroadcastReceiver() {
                 // for ActivityCompat#requestPermissions for more details.
                 return
             }
-            notify(taskId.toInt(), notification)
+            notify(taskId, notification)
         }
     }
 }

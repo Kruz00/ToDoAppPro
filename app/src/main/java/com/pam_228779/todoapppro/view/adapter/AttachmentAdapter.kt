@@ -7,8 +7,22 @@ import com.pam_228779.todoapppro.databinding.ItemAttachmentBinding
 
 class AttachmentAdapter(
     private val attachments: List<Pair<String, String>>, // filename, uri
+    private val onAttachmentClick: (String) -> Unit,
     private val onRemoveClick: (String) -> Unit
 ) : RecyclerView.Adapter<AttachmentAdapter.AttachmentViewHolder>() {
+
+    inner class AttachmentViewHolder(private val binding: ItemAttachmentBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(attachment: String, filePath: String) {
+            binding.attachmentTextView.text = attachment
+            binding.attachmentTextView.setOnClickListener {
+                onAttachmentClick(filePath)
+            }
+            binding.removeAttachmentButton.setOnClickListener {
+                onRemoveClick(filePath)
+            }
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AttachmentViewHolder {
         val binding = ItemAttachmentBinding
@@ -22,14 +36,4 @@ class AttachmentAdapter(
     }
 
     override fun getItemCount(): Int = attachments.size
-
-    inner class AttachmentViewHolder(private val binding: ItemAttachmentBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind(attachment: String, filePath: String) {
-            binding.attachmentTextView.text = attachment
-            binding.removeAttachmentButton.setOnClickListener {
-                onRemoveClick(filePath)
-            }
-        }
-    }
 }

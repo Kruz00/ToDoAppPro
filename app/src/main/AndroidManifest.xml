@@ -27,6 +27,19 @@
         </activity>
         <activity android:name=".view.activity.TaskDetailActivity" />
         <activity android:name=".view.activity.AddTaskActivity" />
+        <receiver
+            android:name=".utils.TaskReminderReceiver"
+            android:enabled="true" >
+        </receiver>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

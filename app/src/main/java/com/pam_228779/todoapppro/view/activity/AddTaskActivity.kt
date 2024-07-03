@@ -148,7 +148,6 @@ class AddTaskActivity : AppCompatActivity() {
             taskDir.mkdirs()
         }
         val destFile = File(taskDir, fileName)
-
         return try {
             contentResolver.openInputStream(uri).use { inputStream ->
                 FileOutputStream(destFile).use { outputStream ->
@@ -167,7 +166,7 @@ class AddTaskActivity : AppCompatActivity() {
     }
 
     private fun setupAttachmentRecyclerView() {
-        attachmentAdapter = AttachmentAdapter(attachments) { attachmentPath ->
+        attachmentAdapter = AttachmentAdapter(attachments, {}) { attachmentPath ->
             attachments.remove(attachments.find { it.second == attachmentPath })
             deleteAttachmentFromExternalStorage(attachmentPath)
             attachmentAdapter.notifyDataSetChanged()
@@ -181,6 +180,14 @@ class AddTaskActivity : AppCompatActivity() {
         if (file.exists()) {
             file.delete()
         }
+    }
+
+    private fun updateDateInView() {
+        binding.selectedDateText.text = dateFormat.format(dueDate.time)
+    }
+
+    private fun updateTimeInView() {
+        binding.selectedTimeText.text = timeFormat.format(dueDate.time)
     }
 
     private fun saveTask() {
@@ -205,13 +212,4 @@ class AddTaskActivity : AppCompatActivity() {
             finish()
         }
     }
-
-    private fun updateDateInView() {
-        binding.selectedDateText.text = dateFormat.format(dueDate.time)
-    }
-
-    private fun updateTimeInView() {
-        binding.selectedTimeText.text = timeFormat.format(dueDate.time)
-    }
-
 }
