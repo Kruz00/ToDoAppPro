@@ -1,28 +1,27 @@
 package com.pam_228779.todoapppro.view.activity
 
-import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.pam_228779.todoapppro.databinding.ActivityAddTaskBinding
 import com.pam_228779.todoapppro.model.Task
+import com.pam_228779.todoapppro.view.adapter.AttachmentAdapter
 import com.pam_228779.todoapppro.viewModel.TaskViewModel
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.UUID
 
 class AddTaskActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddTaskBinding
@@ -30,7 +29,9 @@ class AddTaskActivity : AppCompatActivity() {
     private var dueDate: Calendar = Calendar.getInstance()
     private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    private var attachmentUri: Uri? = null
+    private val attachments: MutableList<Pair<String, String>> = mutableListOf() // file name, file path
+    private lateinit var attachmentAdapter: AttachmentAdapter
+    private var taskUniqueId: String = UUID.randomUUID().toString()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +70,7 @@ class AddTaskActivity : AppCompatActivity() {
             binding.categoryAutocomplete.showDropDown()
         }
 
+        setupAttachmentRecyclerView()
         updateDateInView()
         updateTimeInView()
     }
@@ -107,12 +109,21 @@ class AddTaskActivity : AppCompatActivity() {
         selectAttachmentLauncher.launch(intent)
     }
 
-    private val selectAttachmentLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    private val selectAttachmentLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
         if (result.resultCode == RESULT_OK) {
             result.data?.data?.also { uri ->
-                attachmentUri = uri
                 val fileName = getFileName(uri)
-                binding.attachmentTextView.text = fileName
+                if (!isAttachmentDuplicate(fileName)) {
+                    val savedPath = saveAttachmentToExternalStorage(uri, fileName)
+                    savedPath?.let {
+                        attachments.add(Pair(fileName, it))
+                        attachmentAdapter.notifyDataSetChanged()
+                    }
+                } else {
+                    Toast.makeText(this, "This attachment is already added.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -131,10 +142,12 @@ class AddTaskActivity : AppCompatActivity() {
         return name
     }
 
-    private fun saveAttachmentToExternalStorage(uri: Uri): String? {
-        val fileName = getFileName(uri)
-        val externalFilesDir = getExternalFilesDir(null)
-        val destFile = File(externalFilesDir, fileName)
+    private fun saveAttachmentToExternalStorage(uri: Uri, fileName: String): String? {
+        val taskDir = File(getExternalFilesDir(null), taskUniqueId)
+        if (!taskDir.exists()) {
+            taskDir.mkdirs()
+        }
+        val destFile = File(taskDir, fileName)
 
         return try {
             contentResolver.openInputStream(uri).use { inputStream ->
@@ -149,20 +162,25 @@ class AddTaskActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkAndRequestPermissions(): Boolean {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ), PERMISSION_REQUEST_CODE)
-            return false
-        }
-        return true
+    private fun isAttachmentDuplicate(fileName: String): Boolean {
+        return attachments.any { it.first == fileName }
     }
 
-    companion object {
-        private const val PERMISSION_REQUEST_CODE = 100
+    private fun setupAttachmentRecyclerView() {
+        attachmentAdapter = AttachmentAdapter(attachments) { attachmentPath ->
+            attachments.remove(attachments.find { it.second == attachmentPath })
+            deleteAttachmentFromExternalStorage(attachmentPath)
+            attachmentAdapter.notifyDataSetChanged()
+        }
+        binding.attachmentsRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.attachmentsRecyclerView.adapter = attachmentAdapter
+    }
+
+    private fun deleteAttachmentFromExternalStorage(attachmentPath: String) {
+        val file = File(attachmentPath)
+        if (file.exists()) {
+            file.delete()
+        }
     }
 
     private fun saveTask() {
@@ -172,13 +190,6 @@ class AddTaskActivity : AppCompatActivity() {
         val category = binding.categoryAutocomplete.text.toString()
 
         if (title.isNotEmpty() && category.isNotEmpty()) {
-            val attachmentPath = attachmentUri?.let { uri ->
-                if (checkAndRequestPermissions()) {
-                    saveAttachmentToExternalStorage(uri)
-                } else {
-                    null
-                }
-            }
             val task = Task(
                 title = title,
                 description = description,
@@ -187,8 +198,8 @@ class AddTaskActivity : AppCompatActivity() {
                 isCompleted = false,
                 isNotificationEnabled = isNotificationEnabled,
                 category = category,
-                hasAttachment = attachmentPath != null,
-                attachmentUri = attachmentPath
+                hasAttachment = attachments.isNotEmpty(),
+                attachmentUris = attachments.map { it.second }
             )
             taskViewModel.insert(task)
             finish()
