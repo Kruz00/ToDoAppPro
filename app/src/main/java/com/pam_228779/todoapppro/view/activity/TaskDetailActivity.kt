@@ -99,8 +99,7 @@ class TaskDetailActivity : AppCompatActivity() {
         binding.notificationSwitch.isChecked = task.isNotificationEnabled
 
         task.attachmentUris.forEach {
-            val file = File(it)
-            attachments.add(Pair(file.name, it))
+            attachments.add(Pair(it.name, it.absolutePath))
         }
         attachmentAdapter.notifyDataSetChanged()
     }
@@ -252,7 +251,7 @@ class TaskDetailActivity : AppCompatActivity() {
                     isNotificationEnabled = isNotificationEnabled,
                     category = category,
                     hasAttachment = attachments.isNotEmpty(),
-                    attachmentUris = attachments.map { it.second },
+                    attachmentUris = attachments.map { File(it.second) },
                 )
                 if (updatedTask != task) {
                     Log.i(TAG, "Task '${task?.title}' updated")

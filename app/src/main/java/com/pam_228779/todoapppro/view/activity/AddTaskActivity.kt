@@ -206,7 +206,7 @@ class AddTaskActivity : AppCompatActivity() {
                 isNotificationEnabled = isNotificationEnabled,
                 category = category,
                 hasAttachment = attachments.isNotEmpty(),
-                attachmentUris = attachments.map { it.second },
+                attachmentUris = attachments.map { File(it.second) },
                 taskUniqueDir = taskUniqueDir
             )
             taskViewModel.insert(task)

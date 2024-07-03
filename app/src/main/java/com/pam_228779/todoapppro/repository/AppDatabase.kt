@@ -7,10 +7,10 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.pam_228779.todoapppro.model.Task
 import com.pam_228779.todoapppro.utils.DateConverter
-import com.pam_228779.todoapppro.utils.UriListConverter
+import com.pam_228779.todoapppro.utils.FileListConverter
 
 @Database(entities = [Task::class], version = 1)
-@TypeConverters(DateConverter::class, UriListConverter::class)
+@TypeConverters(DateConverter::class, FileListConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
 
