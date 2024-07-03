@@ -1,6 +1,7 @@
 package com.pam_228779.todoapppro.view.adapter
 
 import android.content.Intent
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -9,6 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.pam_228779.todoapppro.databinding.TaskItemBinding
 import com.pam_228779.todoapppro.model.Task
 import com.pam_228779.todoapppro.view.activity.TaskDetailActivity
+import java.time.Instant
+import java.util.Date
 
 class TaskListAdapter : ListAdapter<Task, TaskListAdapter.TaskViewHolder>(TasksComparator()) {
 
@@ -42,7 +45,11 @@ class TaskListAdapter : ListAdapter<Task, TaskListAdapter.TaskViewHolder>(TasksC
             binding.taskItemTitle.text = task.title
             binding.taskItemCategory.text = task.category
             binding.taskItemDueTime.text = task.dueAt.toString()
-            // Inicjalizacja innych pól
+            if (task.isCompleted) {
+                binding.taskItemTitle.setTextColor(Color.GREEN)
+            } else if (task.dueAt.before(Date.from(Instant.now()))) {
+                binding.taskItemTitle.setTextColor(Color.RED)
+            }
         }
     }
 
