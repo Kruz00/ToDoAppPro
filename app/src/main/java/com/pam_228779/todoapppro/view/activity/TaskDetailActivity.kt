@@ -34,8 +34,8 @@ class TaskDetailActivity : AppCompatActivity() {
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     private val attachments: MutableList<File> = mutableListOf()
     private lateinit var attachmentAdapter: AttachmentAdapter
-    private var taskUniqueDir: String = UUID.randomUUID().toString()
-    private var task: Task? = null
+    private lateinit var taskUniqueDir: String
+    private lateinit var task: Task
     private var isBound: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,8 +63,12 @@ class TaskDetailActivity : AppCompatActivity() {
             showTimePickerDialog()
         }
 
-        binding.editAttachmentsButton.setOnClickListener {
+        binding.addAttachmentButton.setOnClickListener {
             selectAttachment()
+        }
+
+        binding.removeTaskButton.setOnClickListener {
+            removeTask()
         }
 
         binding.saveButton.setOnClickListener {
@@ -233,6 +237,15 @@ class TaskDetailActivity : AppCompatActivity() {
         binding.dueTimeTextView.text = timeFormat.format(dueDate.time)
     }
 
+    private fun removeTask() {
+        val taskDir = File(getExternalFilesDir(null), taskUniqueDir)
+        if (!taskDir.exists()) {
+            taskDir.delete()
+        }
+        taskViewModel.delete(task)
+        finish()
+    }
+
     private fun saveTask() {
         val title = binding.titleEditText.text.toString()
         val description = binding.descriptionEditText.text.toString()
@@ -241,7 +254,7 @@ class TaskDetailActivity : AppCompatActivity() {
         val isCompleted = binding.completedSwitch.isChecked
 
         if (title.isNotEmpty() && category.isNotEmpty()) {
-            task?.let { it ->
+            task.let {
                 val updatedTask = it.copy(
                     title = title,
                     description = description,
@@ -251,9 +264,10 @@ class TaskDetailActivity : AppCompatActivity() {
                     category = category,
                     hasAttachment = attachments.isNotEmpty(),
                     attachmentFiles = attachments,
+                    taskUniqueDir = taskUniqueDir
                 )
                 if (updatedTask != task) {
-                    Log.i(TAG, "Task '${task?.title}' updated")
+                    Log.i(TAG, "Task '${task.title}' updated")
                     taskViewModel.update(updatedTask)
                 }
                 finish()

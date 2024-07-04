@@ -1,6 +1,7 @@
 package com.pam_228779.todoapppro.repository
 
 import androidx.lifecycle.LiveData
+import androidx.preference.PreferenceCategory
 import androidx.room.*
 import com.pam_228779.todoapppro.model.Task
 
@@ -14,6 +15,9 @@ interface TaskDao {
 
     @Query("SELECT DISTINCT category FROM tasks")
     fun getAllCategories(): LiveData<List<String>>
+
+    @Query("SELECT EXISTS (SELECT * FROM tasks WHERE category=:category)")
+    suspend fun isCategoryExist(category: String): Boolean
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(task: Task)

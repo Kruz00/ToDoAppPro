@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.SearchView
@@ -28,6 +29,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         PreferenceManager.setDefaultValues(this, R.xml.preferences, true)
+
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val categoriesToShow = sharedPreferences.getStringSet("categories_to_show", emptySet())
+        Log.i("MainActivity", "Categories to show: $categoriesToShow")
 
         taskListAdapter = TaskListAdapter()
         binding.tasksRecyclerView.apply {

@@ -18,7 +18,6 @@
 
     <MultiSelectListPreference
         app:useSimpleSummaryProvider="true"
-        android:id="@+id/categories_to_show"
         android:key="categories_to_show"
         android:title="Categories to show" />
 

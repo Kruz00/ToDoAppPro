@@ -14,6 +14,10 @@ class TaskRepository(private val taskDao: TaskDao) {
         return taskDao.getAllCategories()
     }
 
+    suspend fun isCategoryExist(category: String) : Boolean {
+        return taskDao.isCategoryExist(category)
+    }
+
     suspend fun insert(task: Task) {
         taskDao.insert(task)
     }
@@ -21,7 +25,6 @@ class TaskRepository(private val taskDao: TaskDao) {
     suspend fun update(task: Task) {
         taskDao.update(task)
     }
-
     suspend fun delete(task: Task) {
         taskDao.delete(task)
     }
