@@ -25,12 +25,6 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     private val _filteredTasks = MediatorLiveData<List<Task>>().apply { value = emptyList() }
     val filteredTasks: LiveData<List<Task>> get() = _filteredTasks
 
-//    private val filtersListener = { _: SharedPreferences, key: String? ->
-//        if (key == "hide_completed_tasks" || key == "categories_to_show") {
-//            updateFilteredTasks()
-//        }
-//    }
-
     init {
         val taskDao = AppDatabase.getDatabase(application).taskDao()
         repository = TaskRepository(taskDao)
@@ -40,29 +34,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         _filteredTasks.addSource(allTasks) {
             updateFilteredTasks()
         }
-//        updateFilteredTasks()
-//        sharedPreferences.registerOnSharedPreferenceChangeListener(filtersListener)
     }
-
-//    override fun onCleared() {
-//        super.onCleared()
-//        sharedPreferences.unregisterOnSharedPreferenceChangeListener(filtersListener)
-//    }
-
-//    private fun getFilteredTasks() {
-//        viewModelScope.launch(Dispatchers.Main) {
-//            val hideCompleted = sharedPreferences.getBoolean("hide_completed_tasks", false)
-//            val categories = sharedPreferences.getStringSet("categories_to_show", emptySet()) ?: emptySet()
-//
-//            val filteredList = allTasks.value?.filter { task ->
-//                (!hideCompleted || !task.isCompleted)
-//                        && (categories.isEmpty() || categories.contains(task.category))
-//            } ?: emptyList()
-//            Log.i(TAG, "filteredList: ${filteredList}, allTasks: ${allTasks.value}")
-//            _filteredTasks.value = filteredList
-//        }
-//
-//    }
 
     fun updateFilteredTasks() {
         viewModelScope.launch(Dispatchers.Main) {

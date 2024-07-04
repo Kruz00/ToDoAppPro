@@ -11,7 +11,6 @@ import android.view.MenuItem
 import android.widget.SearchView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.map
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.pam_228779.todoapppro.R
@@ -80,15 +79,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun filterTasks(query: String?) {
-//        val hideCompleted = sharedPreferences.getBoolean("hide_completed_tasks", false)
-//        val categories = sharedPreferences.getStringSet("categories_to_show", emptySet()) ?: emptySet()
-//
-//        taskViewModel.allTasks.map {
-//            it.filter { task ->
-//                (!hideCompleted || !task.isCompleted)
-//                        && (categories.isEmpty() || categories.contains(task.category))
-//            }
-//        }.observe()
 
         val filteredTasks = taskViewModel.filteredTasks.value?.filter {
             it.title.contains(query ?: "", ignoreCase = true)
@@ -96,12 +86,6 @@ class MainActivity : AppCompatActivity() {
         Log.i(TAG, "filteredTask to taskListAdapter: $filteredTasks")
         taskListAdapter.submitList(filteredTasks)
 
-//        taskViewModel.filteredTasks.removeObservers(this)
-//        taskViewModel.filteredTasks.observe(this) {tasks ->
-//            taskListAdapter.submitList(tasks.filter { task ->
-//                task.title.contains(query ?: "", ignoreCase = true)
-//            })
-//        }
     }
 
     private fun createNotificationChannel() {
@@ -127,6 +111,7 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, SettingsActivity::class.java))
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }

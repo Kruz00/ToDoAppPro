@@ -39,6 +39,13 @@
     </LinearLayout>
 
     <ImageView
+        android:id="@+id/task_item_status_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <ImageView
         android:id="@+id/task_item_attachment_icon"
         android:layout_width="24dp"
         android:layout_height="24dp"
