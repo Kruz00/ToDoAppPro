@@ -4,7 +4,9 @@ import androidx.lifecycle.LiveData
 import com.pam_228779.todoapppro.model.Task
 
 class TaskRepository(private val taskDao: TaskDao) {
-    val allTasks: LiveData<List<Task>> = taskDao.getTasks()
+    fun getTasks(): LiveData<List<Task>> {
+        return taskDao.getTasks()
+    }
 
     fun getTaskById(id: Int): LiveData<Task> {
         return taskDao.getTaskById(id)

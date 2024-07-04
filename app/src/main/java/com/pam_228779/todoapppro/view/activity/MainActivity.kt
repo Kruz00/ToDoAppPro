@@ -3,6 +3,7 @@ package com.pam_228779.todoapppro.view.activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -10,6 +11,7 @@ import android.view.MenuItem
 import android.widget.SearchView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.map
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.pam_228779.todoapppro.R
@@ -17,11 +19,16 @@ import com.pam_228779.todoapppro.databinding.ActivityMainBinding
 import com.pam_228779.todoapppro.view.adapter.TaskListAdapter
 import com.pam_228779.todoapppro.viewModel.TaskViewModel
 
+private const val TAG = "MainActivity"
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val taskViewModel: TaskViewModel by viewModels()
     private lateinit var taskListAdapter: TaskListAdapter
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var preferenceChangeListener: SharedPreferences.OnSharedPreferenceChangeListener
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,9 +37,14 @@ class MainActivity : AppCompatActivity() {
 
         PreferenceManager.setDefaultValues(this, R.xml.preferences, true)
 
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         val categoriesToShow = sharedPreferences.getStringSet("categories_to_show", emptySet())
-        Log.i("MainActivity", "Categories to show: $categoriesToShow")
+        Log.i(TAG, "Categories to show: $categoriesToShow")
+
+        preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+            taskViewModel.updateFilteredTasks()
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
 
         taskListAdapter = TaskListAdapter()
         binding.tasksRecyclerView.apply {
@@ -40,9 +52,10 @@ class MainActivity : AppCompatActivity() {
             adapter = taskListAdapter
         }
 
-        taskViewModel.allTasks.observe(this) { tasks ->
+        taskViewModel.filteredTasks.observe(this) { tasks ->
             tasks?.let {
-                taskListAdapter.submitList(it)
+                Log.i(TAG, "observe - tasks: $tasks")
+                filterTasks(binding.searchView.query.toString())
             }
         }
 
@@ -67,10 +80,28 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun filterTasks(query: String?) {
-        val filteredTasks = taskViewModel.allTasks.value?.filter {
+//        val hideCompleted = sharedPreferences.getBoolean("hide_completed_tasks", false)
+//        val categories = sharedPreferences.getStringSet("categories_to_show", emptySet()) ?: emptySet()
+//
+//        taskViewModel.allTasks.map {
+//            it.filter { task ->
+//                (!hideCompleted || !task.isCompleted)
+//                        && (categories.isEmpty() || categories.contains(task.category))
+//            }
+//        }.observe()
+
+        val filteredTasks = taskViewModel.filteredTasks.value?.filter {
             it.title.contains(query ?: "", ignoreCase = true)
         }
+        Log.i(TAG, "filteredTask to taskListAdapter: $filteredTasks")
         taskListAdapter.submitList(filteredTasks)
+
+//        taskViewModel.filteredTasks.removeObservers(this)
+//        taskViewModel.filteredTasks.observe(this) {tasks ->
+//            taskListAdapter.submitList(tasks.filter { task ->
+//                task.title.contains(query ?: "", ignoreCase = true)
+//            })
+//        }
     }
 
     private fun createNotificationChannel() {

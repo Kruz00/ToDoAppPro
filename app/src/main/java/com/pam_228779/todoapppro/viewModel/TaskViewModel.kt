@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import com.pam_228779.todoapppro.model.Task
@@ -12,18 +13,69 @@ import com.pam_228779.todoapppro.repository.AppDatabase
 import com.pam_228779.todoapppro.repository.TaskRepository
 import com.pam_228779.todoapppro.utils.cancelTaskReminder
 import com.pam_228779.todoapppro.utils.scheduleTaskReminder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
+private const val TAG = "TaskViewModel"
 
 class TaskViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: TaskRepository
+    private val sharedPreferences: SharedPreferences
     val allTasks: LiveData<List<Task>>
-    val sharedPreferences: SharedPreferences
+    private val _filteredTasks = MediatorLiveData<List<Task>>().apply { value = emptyList() }
+    val filteredTasks: LiveData<List<Task>> get() = _filteredTasks
+
+//    private val filtersListener = { _: SharedPreferences, key: String? ->
+//        if (key == "hide_completed_tasks" || key == "categories_to_show") {
+//            updateFilteredTasks()
+//        }
+//    }
 
     init {
         val taskDao = AppDatabase.getDatabase(application).taskDao()
         repository = TaskRepository(taskDao)
-        allTasks = repository.allTasks
+        allTasks = repository.getTasks()
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(application)
+
+        _filteredTasks.addSource(allTasks) {
+            updateFilteredTasks()
+        }
+//        updateFilteredTasks()
+//        sharedPreferences.registerOnSharedPreferenceChangeListener(filtersListener)
+    }
+
+//    override fun onCleared() {
+//        super.onCleared()
+//        sharedPreferences.unregisterOnSharedPreferenceChangeListener(filtersListener)
+//    }
+
+//    private fun getFilteredTasks() {
+//        viewModelScope.launch(Dispatchers.Main) {
+//            val hideCompleted = sharedPreferences.getBoolean("hide_completed_tasks", false)
+//            val categories = sharedPreferences.getStringSet("categories_to_show", emptySet()) ?: emptySet()
+//
+//            val filteredList = allTasks.value?.filter { task ->
+//                (!hideCompleted || !task.isCompleted)
+//                        && (categories.isEmpty() || categories.contains(task.category))
+//            } ?: emptyList()
+//            Log.i(TAG, "filteredList: ${filteredList}, allTasks: ${allTasks.value}")
+//            _filteredTasks.value = filteredList
+//        }
+//
+//    }
+
+    fun updateFilteredTasks() {
+        viewModelScope.launch(Dispatchers.Main) {
+            val hideCompleted = sharedPreferences.getBoolean("hide_completed_tasks", false)
+            val categories = sharedPreferences.getStringSet("categories_to_show", emptySet()) ?: emptySet()
+
+            val filteredList = allTasks.value?.filter { task ->
+                (!hideCompleted || !task.isCompleted) && (categories.isEmpty() || categories.contains(task.category))
+            } ?: emptyList()
+            Log.i(TAG, "filteredList: ${filteredList}, allTasks: ${allTasks.value}")
+            _filteredTasks.value = filteredList
+        }
+
     }
 
     fun getTaskById(id: Int): LiveData<Task> {
@@ -63,14 +115,15 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         cancelTaskReminder(task)
     }
 
+    // TODO reakcja na zmiane czasu powiadomien w shared preferences
     private fun scheduleTaskReminder(task: Task) {
         val reminderOffsetMinutes = 0L
-        Log.i("TaskViewModel", "Scheduling notification for $task")
+        Log.i(TAG, "Scheduling notification for $task")
 //        scheduleTaskReminder(getApplication(), task, reminderOffsetMinutes)
     }
 
     private fun cancelTaskReminder(task: Task) {
-        Log.i("TaskViewModel", "Cancel notification for $task")
+        Log.i(TAG, "Cancel notification for $task")
 //        cancelTaskReminder(getApplication(), task)
     }
 }
