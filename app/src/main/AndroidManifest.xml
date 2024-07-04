@@ -27,6 +27,7 @@
         </activity>
         <activity android:name=".view.activity.TaskDetailActivity" />
         <activity android:name=".view.activity.AddTaskActivity" />
+        <activity android:name=".view.activity.SettingsActivity" />
         <receiver
             android:name=".utils.TaskReminderReceiver"
             android:enabled="true" >

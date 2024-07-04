@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        app:useSimpleSummaryProvider="true"
+        android:key="hide_completed_tasks"
+        android:title="Hide completed tasks"
+        android:defaultValue="false" />
+
+    <ListPreference
+        app:useSimpleSummaryProvider="true"
+        android:key="notification_time"
+        android:title="Notification Time (minutes before)"
+        android:entries="@array/notifications_options"
+        android:entryValues="@array/notifications_values"
+        android:defaultValue="15" />
+
+    <MultiSelectListPreference
+        app:useSimpleSummaryProvider="true"
+        android:id="@+id/categories_to_show"
+        android:key="categories_to_show"
+        android:title="Categories to show" />
+
+
+</PreferenceScreen>
