@@ -2,33 +2,48 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/task_item_title"
+    <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Task Title"
-        android:textSize="22sp"
-        android:textAppearance="?attr/textAppearanceListItem" />
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/task_item_category"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Category"
-        android:textSize="16sp"
-        android:textAppearance="?attr/textAppearanceListItem" />
+        <TextView
+            android:id="@+id/task_item_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Task Title"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textSize="22sp" />
 
-    <TextView
-        android:id="@+id/task_item_due_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Task due time"
-        android:textSize="14sp"
-        android:textAppearance="?attr/textAppearanceListItem" />
+        <TextView
+            android:id="@+id/task_item_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Category"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textSize="16sp" />
 
-    <!-- Add other views for displaying task details -->
+        <TextView
+            android:id="@+id/task_item_due_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Task due time"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/task_item_attachment_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center"
+        android:src="@drawable/round_attachment_24"
+        android:visibility="visible" />
 
 </LinearLayout>

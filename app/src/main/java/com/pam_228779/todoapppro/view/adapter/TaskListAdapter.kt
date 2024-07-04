@@ -3,6 +3,7 @@ package com.pam_228779.todoapppro.view.adapter
 import android.content.Intent
 import android.graphics.Color
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -10,8 +11,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.pam_228779.todoapppro.databinding.TaskItemBinding
 import com.pam_228779.todoapppro.model.Task
 import com.pam_228779.todoapppro.view.activity.TaskDetailActivity
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.Date
+import java.util.Locale
 
 class TaskListAdapter : ListAdapter<Task, TaskListAdapter.TaskViewHolder>(TasksComparator()) {
 
@@ -44,7 +47,12 @@ class TaskListAdapter : ListAdapter<Task, TaskListAdapter.TaskViewHolder>(TasksC
             this.task = task
             binding.taskItemTitle.text = task.title
             binding.taskItemCategory.text = task.category
-            binding.taskItemDueTime.text = task.dueAt.toString()
+            binding.taskItemDueTime.text = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(task.dueAt)
+            if (task.hasAttachment) {
+                binding.taskItemAttachmentIcon.visibility = View.VISIBLE
+            } else {
+                binding.taskItemAttachmentIcon.visibility = View.GONE
+            }
             if (task.isCompleted) {
                 binding.taskItemTitle.setTextColor(Color.GREEN)
             } else if (task.dueAt.before(Date.from(Instant.now()))) {
