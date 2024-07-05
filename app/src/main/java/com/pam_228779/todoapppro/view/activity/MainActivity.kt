@@ -1,9 +1,12 @@
 package com.pam_228779.todoapppro.view.activity
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -11,6 +14,8 @@ import android.view.MenuItem
 import android.widget.SearchView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.pam_228779.todoapppro.R
@@ -27,6 +32,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var taskListAdapter: TaskListAdapter
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var preferenceChangeListener: SharedPreferences.OnSharedPreferenceChangeListener
+
+    private val REQUEST_CODE_NOTIFICATION_PERMISSION = 1
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +70,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        checkNotificationPermission()
+
         createNotificationChannel()
 
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -86,6 +95,35 @@ class MainActivity : AppCompatActivity() {
         Log.i(TAG, "filteredTask to taskListAdapter: $filteredTasks")
         taskListAdapter.submitList(filteredTasks)
 
+    }
+
+    private fun checkNotificationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    REQUEST_CODE_NOTIFICATION_PERMISSION)
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_CODE_NOTIFICATION_PERMISSION -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Log.i(TAG, "Notification permission granted")
+                } else {
+                    Log.e(TAG, "Notification permission not granted")
+                }
+                return
+            }
+        }
     }
 
     private fun createNotificationChannel() {

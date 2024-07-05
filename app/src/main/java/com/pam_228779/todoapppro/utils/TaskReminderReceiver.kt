@@ -6,24 +6,31 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.pam_228779.todoapppro.R
 import com.pam_228779.todoapppro.view.activity.TaskDetailActivity
 
+private const val TAG = "TaskReminderReceiver"
+
 class TaskReminderReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        Log.i(TAG, "Intent received")
+
         val taskId = intent.getIntExtra("TASK_ID", -1)
         val taskTitle = intent.getStringExtra("TASK_TITLE") ?: "Task"
         val taskDescription = intent.getStringExtra("TASK_DESCRIPTION") ?: "You have a task to complete."
+
+        Log.i(TAG, "Received alarm for task $taskId")
 
         val notificationIntent = Intent(context, TaskDetailActivity::class.java).apply {
             putExtra("TASK_ID", taskId)
         }
         val pendingIntent = PendingIntent.getActivity(context, taskId, notificationIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val notification = NotificationCompat.Builder(context, "TASK_REMINDER_CHANNEL")
             .setSmallIcon(R.drawable.ic_notification)
@@ -40,6 +47,7 @@ class TaskReminderReceiver : BroadcastReceiver() {
                     Manifest.permission.POST_NOTIFICATIONS
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
+                Log.e(TAG, "Notification permission not granted")
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
                 // here to request the missing permissions, and then overriding
@@ -49,6 +57,7 @@ class TaskReminderReceiver : BroadcastReceiver() {
                 // for ActivityCompat#requestPermissions for more details.
                 return
             }
+            Log.i(TAG, "Showing notification for task $taskId")
             notify(taskId, notification)
         }
     }

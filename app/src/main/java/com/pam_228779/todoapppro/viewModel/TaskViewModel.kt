@@ -89,13 +89,13 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     // TODO reakcja na zmiane czasu powiadomien w shared preferences
     private fun scheduleTaskReminder(task: Task) {
-        val reminderOffsetMinutes = 0L
+        val reminderOffsetMinutes = sharedPreferences.getString("notification_time", "15")!!.toLong()
         Log.i(TAG, "Scheduling notification for $task")
-//        scheduleTaskReminder(getApplication(), task, reminderOffsetMinutes)
+        scheduleTaskReminder(getApplication(), task, reminderOffsetMinutes)
     }
 
     private fun cancelTaskReminder(task: Task) {
         Log.i(TAG, "Cancel notification for $task")
-//        cancelTaskReminder(getApplication(), task)
+        cancelTaskReminder(getApplication(), task)
     }
 }

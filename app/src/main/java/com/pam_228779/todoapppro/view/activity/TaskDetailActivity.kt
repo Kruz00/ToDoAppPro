@@ -110,10 +110,9 @@ class TaskDetailActivity : AppCompatActivity() {
     }
 
     private fun showDatePickerDialog() {
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val year = dueDate.get(Calendar.YEAR)
+        val month = dueDate.get(Calendar.MONTH)
+        val day = dueDate.get(Calendar.DAY_OF_MONTH)
 
         DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
             dueDate.set(Calendar.YEAR, selectedYear)
@@ -124,9 +123,8 @@ class TaskDetailActivity : AppCompatActivity() {
     }
 
     private fun showTimePickerDialog() {
-        val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val minute = calendar.get(Calendar.MINUTE)
+        val hour = dueDate.get(Calendar.HOUR_OF_DAY)
+        val minute = dueDate.get(Calendar.MINUTE)
 
         TimePickerDialog(this, { _, selectedHour, selectedMinute ->
             dueDate.set(Calendar.HOUR_OF_DAY, selectedHour)
