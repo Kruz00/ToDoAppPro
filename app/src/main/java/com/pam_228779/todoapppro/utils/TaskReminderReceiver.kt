@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.TaskStackBuilder
 import com.pam_228779.todoapppro.R
 import com.pam_228779.todoapppro.view.activity.TaskDetailActivity
 
@@ -29,8 +30,13 @@ class TaskReminderReceiver : BroadcastReceiver() {
         val notificationIntent = Intent(context, TaskDetailActivity::class.java).apply {
             putExtra("TASK_ID", taskId)
         }
-        val pendingIntent = PendingIntent.getActivity(context, taskId, notificationIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = TaskStackBuilder.create(context).run {
+            addNextIntentWithParentStack(notificationIntent)
+            getPendingIntent(
+                taskId,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
 
         val notification = NotificationCompat.Builder(context, "TASK_REMINDER_CHANNEL")
             .setSmallIcon(R.drawable.ic_notification)

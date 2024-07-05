@@ -26,7 +26,7 @@ import java.util.UUID
 class AddTaskActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddTaskBinding
     private val taskViewModel: TaskViewModel by viewModels()
-    private var dueDate: Calendar = Calendar.getInstance()
+    private var dueDate: Calendar = Calendar.getInstance().apply { set(Calendar.SECOND, 0)}
     private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     private val attachments: MutableList<File> = mutableListOf()
