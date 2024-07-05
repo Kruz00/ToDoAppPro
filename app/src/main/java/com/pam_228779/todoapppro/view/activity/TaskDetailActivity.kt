@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.util.Log
+import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,6 +43,8 @@ class TaskDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityTaskDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val taskId = intent.getIntExtra("TASK_ID", -1)
         if (taskId != -1) {
@@ -94,6 +97,16 @@ class TaskDetailActivity : AppCompatActivity() {
         setupAttachmentRecyclerView()
         updateDateInView()
         updateTimeInView()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     private fun bindTaskDetails(task: Task) {

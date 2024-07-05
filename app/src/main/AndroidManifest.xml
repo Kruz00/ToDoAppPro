@@ -26,9 +26,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.activity.TaskDetailActivity" />
-        <activity android:name=".view.activity.AddTaskActivity" />
-        <activity android:name=".view.activity.SettingsActivity" />
+        <activity android:name=".view.activity.TaskDetailActivity"
+            android:parentActivityName=".view.activity.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.activity.MainActivity"/>
+        </activity>
+        <activity android:name=".view.activity.AddTaskActivity"
+            android:parentActivityName=".view.activity.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.activity.MainActivity"/>
+        </activity>
+        <activity android:name=".view.activity.SettingsActivity"
+            android:parentActivityName=".view.activity.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.activity.MainActivity"/>
+        </activity>
         <receiver
             android:name=".utils.TaskReminderReceiver"
             android:enabled="true" >
