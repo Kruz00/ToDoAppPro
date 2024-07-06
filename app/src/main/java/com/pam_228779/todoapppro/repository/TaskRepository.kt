@@ -8,6 +8,10 @@ class TaskRepository(private val taskDao: TaskDao) {
         return taskDao.getTasks()
     }
 
+    suspend fun getTasksSuspend(): List<Task> {
+        return taskDao.getTasksSuspend()
+    }
+
     fun getTaskById(id: Int): LiveData<Task> {
         return taskDao.getTaskById(id)
     }

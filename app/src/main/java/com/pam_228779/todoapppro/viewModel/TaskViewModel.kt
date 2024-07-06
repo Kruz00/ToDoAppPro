@@ -24,6 +24,10 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     val allTasks: LiveData<List<Task>>
     private val _filteredTasks = MediatorLiveData<List<Task>>().apply { value = emptyList() }
     val filteredTasks: LiveData<List<Task>> get() = _filteredTasks
+    private val notificationTimeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == "notification_time")
+            updateNotifications()
+    }
 
     init {
         val taskDao = AppDatabase.getDatabase(application).taskDao()
@@ -33,6 +37,23 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
         _filteredTasks.addSource(allTasks) {
             updateFilteredTasks()
+        }
+
+        sharedPreferences.registerOnSharedPreferenceChangeListener(notificationTimeListener)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(notificationTimeListener)
+    }
+
+    private fun updateNotifications() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getTasksSuspend().forEach {
+                if (it.isNotificationEnabled && !it.isCompleted) {
+                    scheduleTaskReminder(it)
+                }
+            }
         }
     }
 
@@ -67,7 +88,9 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     fun update(task: Task) = viewModelScope.launch {
         repository.update(task)
-        if (task.isNotificationEnabled) {
+        if (task.isCompleted) {
+            cancelTaskReminder(task)
+        } else if (task.isNotificationEnabled) {
             scheduleTaskReminder(task)
         } else {
             cancelTaskReminder(task)

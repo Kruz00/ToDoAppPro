@@ -7,12 +7,20 @@ import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import com.pam_228779.todoapppro.model.Task
+import java.time.Instant
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 private const val TAG = "TaskUtils"
 
 fun scheduleTaskReminder(context: Context, task: Task, reminderOffsetMinutes: Long) {
+    val reminderTime = Calendar.getInstance().apply {
+        timeInMillis = task.dueAt.time - TimeUnit.MINUTES.toMillis(reminderOffsetMinutes)
+    }
+    if (reminderTime.toInstant().isBefore(Instant.now())) {
+        return
+    }
+
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     val intent = Intent(context, TaskReminderReceiver::class.java).apply {
@@ -27,9 +35,6 @@ fun scheduleTaskReminder(context: Context, task: Task, reminderOffsetMinutes: Lo
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
-    val reminderTime = Calendar.getInstance().apply {
-        timeInMillis = task.dueAt.time - TimeUnit.MINUTES.toMillis(reminderOffsetMinutes)
-    }
     Log.i("scheduleTaskReminder", "Scheduling notification for task ${task.id} at ${reminderTime.time}, task due at: ${task.dueAt}")
 
 //    alarmManager.canScheduleExactAlarms()
